@@ -26,7 +26,7 @@
         .btn-submit { display: block; width: 100%; padding: 14px; background-color: #1a73e8; color: white; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 30px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
         .btn-submit:active { background-color: #1557b0; transform: scale(0.98); }
 
-        /* --- 结果区域样式 (本次修改重点) --- */
+        /* --- 结果区域样式 --- */
         #result-area { display: none; margin-top: 30px; animation: fadeIn 0.5s; }
         
         .result-card { padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
@@ -36,9 +36,10 @@
         /* 未通过样式 - 红色 */
         .fail-card { background: linear-gradient(135deg, #dc3545, #c82333); }
 
-        .result-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; }
-        .result-score { font-size: 1.2rem; opacity: 0.9; }
-        .result-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+        .result-title { font-size: 2rem; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; }
+        .result-score-text { font-size: 1rem; opacity: 0.9; margin-bottom: 15px; }
+        .result-big-score { font-size: 3.5rem; font-weight: 800; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .result-icon { font-size: 3rem; display: block; margin-bottom: 5px; }
 
         /* 知识点分析条样式 */
         .analysis-box { background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; }
@@ -62,7 +63,7 @@
 
 <div class="container">
     <h1>✈️ 飞行训练与运行规章测试</h1>
-    <div class="subtitle">共 20 题 · 答对 12 题及以上为通过</div>
+    <div class="subtitle">共 20 题 · 满分 100 分 · 60 分及格</div>
     
     <form id="quiz-form"></form>
 
@@ -252,7 +253,7 @@
 
     // 提交与分析逻辑
     function submitQuiz() {
-        let score = 0;
+        let correctCount = 0;
         let categoryStats = {}; 
 
         // 遍历所有题目判分
@@ -270,7 +271,7 @@
             if (selected) {
                 const val = parseInt(selected.value);
                 if (val === item.correct) {
-                    score++;
+                    correctCount++;
                     categoryStats[item.category].correct++;
                     feedbackEl.innerHTML = `<div class="status-correct">✅ 回答正确</div><div style="margin-top:5px; color:#666; font-size:0.9em;">${item.rationale}</div>`;
                     feedbackEl.style.borderLeftColor = '#28a745';
@@ -295,17 +296,20 @@
         const resultArea = document.getElementById('result-area');
         resultArea.style.display = 'block';
 
-        // --- 生成考核结果 (本次修改重点) ---
-        const PASS_THRESHOLD = 12; // 及格线
+        // --- 计算得分 (本次修改点：5分/题，总分100) ---
+        const totalScore = correctCount * 5; // 每题5分
+        const PASS_SCORE = 60; // 60分及格
+        
         const resultCard = document.getElementById('main-result-card');
         
-        if (score >= PASS_THRESHOLD) {
+        if (totalScore >= PASS_SCORE) {
             // 通过
             resultCard.className = 'result-card pass-card';
             resultCard.innerHTML = `
                 <div class="result-icon">🎉</div>
                 <div class="result-title">考核通过</div>
-                <div class="result-score">您的得分：${score} / ${quizData.length}</div>
+                <div class="result-big-score">${totalScore}</div>
+                <div class="result-score-text">答对 ${correctCount} / ${quizData.length} 题</div>
             `;
         } else {
             // 未通过
@@ -313,11 +317,12 @@
             resultCard.innerHTML = `
                 <div class="result-icon">⚠️</div>
                 <div class="result-title">考核未通过</div>
-                <div class="result-score">您的得分：${score} / ${quizData.length} (需12分通过)</div>
+                <div class="result-big-score">${totalScore}</div>
+                <div class="result-score-text">分数需达到 60 分 (当前 ${totalScore})</div>
             `;
         }
 
-        // --- 生成知识点分析 (保持原有的可视化条) ---
+        // --- 生成知识点分析 ---
         let analysisHtml = '';
         for (let cat in categoryStats) {
             const stat = categoryStats[cat];
