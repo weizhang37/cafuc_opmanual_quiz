@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>广汉分院飞行四大队飞行训练运行手册能力测试</title>
+    <title>CAFUC 飞行训练与运行规章能力测试</title>
     <style>
         /* --- 基础样式 --- */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        /* 标题 */
         h1 { text-align: center; color: #1a73e8; margin-bottom: 10px; font-size: 1.5rem; }
         .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.9rem; }
 
@@ -27,28 +26,34 @@
         .btn-submit { display: block; width: 100%; padding: 14px; background-color: #1a73e8; color: white; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 30px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
         .btn-submit:active { background-color: #1557b0; transform: scale(0.98); }
 
-        /* --- 结果区域新样式 --- */
+        /* --- 结果区域样式 (本次修改重点) --- */
         #result-area { display: none; margin-top: 30px; animation: fadeIn 0.5s; }
-        .score-card { background: linear-gradient(135deg, #1a73e8, #4285f4); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(66,133,244,0.3); }
-        .score-num { font-size: 2.5rem; font-weight: bold; line-height: 1; }
-        .score-label { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
+        
+        .result-card { padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        
+        /* 通过样式 - 绿色 */
+        .pass-card { background: linear-gradient(135deg, #28a745, #218838); }
+        /* 未通过样式 - 红色 */
+        .fail-card { background: linear-gradient(135deg, #dc3545, #c82333); }
+
+        .result-title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; }
+        .result-score { font-size: 1.2rem; opacity: 0.9; }
+        .result-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
 
         /* 知识点分析条样式 */
         .analysis-box { background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; }
         .analysis-item { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
         .cat-name { font-weight: bold; width: 100%; margin-bottom: 5px; font-size: 0.95rem; color: #444; }
-        
-        /* 进度条容器 */
         .progress-container { flex-grow: 1; height: 10px; background-color: #f1f3f4; border-radius: 5px; margin-right: 15px; overflow: hidden; }
         .progress-bar { height: 100%; border-radius: 5px; transition: width 1s ease-in-out; }
-        
-        /* 状态文字 */
         .status-tag { font-size: 0.85rem; font-weight: bold; min-width: 80px; text-align: right; }
 
         /* 反馈样式 */
         .feedback { display: none; margin-top: 10px; padding: 12px; background-color: #f8f9fa; border-radius: 6px; font-size: 0.9em; border-left: 4px solid #999; }
         .correct-bg { background-color: #d4edda !important; border-color: #c3e6cb !important; }
         .wrong-bg { background-color: #f8d7da !important; border-color: #f5c6cb !important; }
+        .status-correct { color: #155724; font-weight: bold; }
+        .status-wrong { color: #721c24; font-weight: bold; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -57,280 +62,11 @@
 
 <div class="container">
     <h1>✈️ 飞行训练与运行规章测试</h1>
-    <div class="subtitle">共 20 题 · 提交后自动生成掌握度分析</div>
+    <div class="subtitle">共 20 题 · 答对 12 题及以上为通过</div>
     
     <form id="quiz-form"></form>
 
     <button type="button" class="btn-submit" onclick="submitQuiz()">提交试卷</button>
 
     <div id="result-area">
-        <div class="score-card">
-            <div class="score-num" id="score-num">0</div>
-            <div class="score-label">总得分 (满分 20)</div>
-        </div>
-
-        <div class="analysis-box">
-            <h3 style="margin-top:0; margin-bottom:15px; color:#333; border-bottom:1px solid #eee; padding-bottom:10px;">📊 知识点掌握情况</h3>
-            <div id="analysis-content"></div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 0.85rem;">
-            请向上滑动查看每道题的详细解析
-        </div>
-    </div>
-</div>
-
-<script>
-    // 题目数据
-    const quizData = [
-        {
-            id: 1, category: "注册与资格",
-            question: "根据《航线运输驾驶员(飞机)整体课程训练要求》，对于先前获得飞行经历，但**未**持有按照CCAR-61部颁发的飞机类别私用驾驶员执照的人员，应当如何注册该整体课程？",
-            options: ["最多承认其40小时的先前飞行经历", "必须按照零经历注册整体课程", "可根据对其飞行技术检查的情况，承认其全部飞行经历时间", "最多承认其10小时的单飞训练时间"],
-            correct: 1,
-            rationale: "依据：AC-141-FS-2023-04R1 5.1(3)a。未持有CCAR-61部私用驾驶员执照的人员，无论是否有飞行经历，都必须作为零经历学员注册该整体课程。"
-        },
-        {
-            id: 2, category: "训练管理",
-            question: "根据《航线运输驾驶员(飞机)整体课程训练要求》，驾驶员学校在初始批准时，航线运输整体课程最多批准的训练容量是多少名？",
-            options: ["10名", "30名", "60名", "100名"],
-            correct: 1,
-            rationale: "依据：AC-141-FS-2023-04R1 6.1(2)。初始批准时航线运输整体课程最多批准训练容量为30名。"
-        },
-        {
-            id: 3, category: "训练管理",
-            question: "在航线运输整体课程训练期间，除阶段检查、课程结束考试或教学检查外，同一飞行教员提供飞行训练的学员人数不得超过多少名？",
-            options: ["5名", "6名", "8名", "10名"],
-            correct: 2,
-            rationale: "依据：AC-141-FS-2023-04R1 6.2。同一飞行教员提供飞行训练的学员人数不得超过8名。"
-        },
-        {
-            id: 4, category: "时间限制",
-            question: "进行航线运输整体课程训练的学员，在任何连续24小时内，接受飞行训练（含单飞、检查、考试）的总时间，以及接受所有训练和地面教学的总时间，分别不得超过多少小时？",
-            options: ["飞行训练4小时，总时间8小时", "飞行训练5小时，总时间10小时", "飞行训练4小时，总时间12小时", "飞行训练6小时，总时间8小时"],
-            correct: 0,
-            rationale: "依据：AC-141-FS-2023-04R1 6.3。飞行训练不得超过4小时（转场5小时），总时间不得超过8小时。"
-        },
-        {
-            id: 5, category: "训练终止",
-            question: "航线运输整体课程的训练终止条件之一是，学员在商用驾驶员执照（飞机）、仪表等级（飞机）和航线运输驾驶员执照（飞机）理论考试中，每种考试的单科考试次数未通过达到多少次？",
-            options: ["2次", "3次", "4次", "5次"],
-            correct: 2,
-            rationale: "依据：AC-141-FS-2023-04R1 第7条(4)。每种考试单科考试次数4次未通过的，应当终止训练。"
-        },
-        {
-            id: 6, category: "飞行前准备",
-            question: "根据《飞行运行手册》，除了有效的飞行员执照、体检合格证和机组登机证外，飞行机组执行飞行任务时还需要携带下列哪些物品？",
-            options: ["秒表和备用墨镜", "走时可靠的手表和备用手电筒", "便携式GPS设备和头戴式耳机", "两副矫正镜片（如需要）和备用电池"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.2.2.6。要求携带走时可靠的手表，以及夜间飞行用手电筒（若机上无）。"
-        },
-        {
-            id: 7, category: "机长职责",
-            question: "根据《飞行运行手册》，对于飞机而言，机长对飞机的操作和安全负责的最终权限是从哪个时刻开始，到哪个时刻为止？",
-            options: ["从机组人员开始登机到飞机着陆轮挡定位", "从飞机滑行开始到发动机关闭", "从飞机准备好移动以供起飞直到最终停稳且主推进发动机关闭", "从机长接收放行单到机组人员全部离机"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 3.2.2.2 A a。权限起止点为：从飞机准备好移动以供起飞直到最终停稳且主推进发动机关闭。"
-        },
-        {
-            id: 8, category: "时间限制",
-            question: "根据《飞行运行手册》关于飞行时间限制的规定，除高性能多发飞机外，飞行教员在任何连续24小时内，飞行经历时间与教学时间（包括飞行训练、检查、考试）的总和不得超过多少小时？",
-            options: ["4小时", "6小时", "8小时", "10小时"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 3.2.3.2 C。24小时内飞行经历与教学时间总和不得超过8小时。"
-        },
-        {
-            id: 9, category: "时间限制",
-            question: "根据《飞行运行手册》，对于被安排一个或多个值勤期的飞行教员，在任何连续7个日历日内，至少应给予多少小时的连续休息时间？",
-            options: ["24小时", "36小时", "40小时", "48小时"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.2.3.3 B。连续7个日历日内至少36小时连续休息。"
-        },
-        {
-            id: 10, category: "天气标准",
-            question: "根据《飞行运行手册》的VFR天气最低标准，在平均海平面（AMSL）3,000米及以上高度的空域进行目视飞行规则（VFR）运行时，能见度不得低于多少米？",
-            options: ["1,600米", "3,000米", "5,000米", "8,000米"],
-            correct: 3,
-            rationale: "依据：飞行运行手册 3.2.12.1 A。3,000米及以上高度，能见度不得低于8,000米。"
-        },
-        {
-            id: 11, category: "运行限制",
-            question: "根据《飞行运行手册》，在平均海平面3,000米（10,000英尺）以下的高度，飞行员不得以超过多少公里/小时（节）的指示空速驾驶航空器？",
-            options: ["370公里/小时 (200节)", "470公里/小时 (250节)", "555公里/小时 (300节)", "600公里/小时 (324节)"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.2.13 A。3,000米以下，指示空速不得超过470公里/小时（250节）。"
-        },
-        {
-            id: 12, category: "燃油要求",
-            question: "根据《飞行运行手册》，飞行员在夜间以目视飞行规则（VFR）开始飞行时，在飞抵预定着陆的第一点后，航空器至少需携带能够以正常巡航速度飞行多久的燃油？",
-            options: ["30分钟", "45分钟", "60分钟", "90分钟"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 3.2.14 A a。夜间VFR飞行需携带至少60分钟的额外燃油。"
-        },
-        {
-            id: 13, category: "飞行程序",
-            question: "根据《飞行运行手册》中高度表拨正程序，在没有规定过渡高度层和过渡高度的机场，飞机在起飞前应将高度表拨正到哪个值？",
-            options: ["标准大气压（1013.2 hPa）", "机场场面气压（QFE）", "机场海平面气压（QNH）", "最低扇区高度"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.2.9 C b。无规定过渡高度/层的机场，起飞前拨正到机场场面气压（QFE）。"
-        },
-        {
-            id: 14, category: "飞行程序",
-            question: "根据《飞行运行手册》关于检查单使用和中断的规定，如果在执行检查单过程中因故中断，机组应如何处理？",
-            options: ["从中断处开始继续执行检查单", "通常应从头开始重新执行检查单", "口头复述已完成的项目，然后继续执行未完成的部分", "记录中断原因，并在完成后续飞行任务后向机长报告"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.5.1 C。检查单中断后通常应从头开始重新执行。"
-        },
-        {
-            id: 15, category: "天气标准",
-            question: "根据《飞行运行手册》中针对单飞和机长训练的天气最低标准，学员进行单飞训练时，侧风分量不得超过飞行手册中规定的最大演示侧风分量的多少？",
-            options: ["1/4", "1/3", "1/2", "2/3"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 6.2.4.1 A b。单飞侧风分量不得超过最大演示侧风分量的1/2。"
-        },
-        {
-            id: 16, category: "应急程序",
-            question: "在紧急情况下，如果航空器处于受到严重或即将发生的危险，需要立即协助的“遇险”状态，飞行员应首先发送哪个无线电呼叫？",
-            options: ["PAN PAN (连续三次)", "MAYDAY (连续三次)", "SQUAWK 7700", "DECLARING EMERGENCY"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.9.2 B。MAYDAY是'遇险'（Distress）情况的呼叫。"
-        },
-        {
-            id: 17, category: "应急程序",
-            question: "根据《飞行运行手册》，航空器发生鸟击事件后，机长在着陆后应该采取的行动包括什么？",
-            options: ["立即执行应急降落，并等待救援", "向相关地面站报告情况并立即采取规避机动", "报告事件情况，在航空器飞行记录本中记录，并向负责部门报告", "自行评估损伤，若无明显影响则可继续下一个飞行任务"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 3.9.13 B。着陆后需报告事件，记录在飞行记录本中，并向主管部门报告。"
-        },
-        {
-            id: 18, category: "特殊天气运行",
-            question: "根据《飞行运行手册》，航空器若装有雷达并能根据雷达数据确定雷暴确切位置，在云中绕飞雷暴时，与积雨云（浓积云）的距离不得少于多少公里？",
-            options: ["5公里", "10公里", "20公里", "32公里"],
-            correct: 2,
-            rationale: "依据：飞行运行手册 3.8.4 D a。云中绕飞雷暴，距离不得少于20公里。"
-        },
-        {
-            id: 19, category: "RVSM运行",
-            question: "根据《飞行运行手册》，航空器进入RVSM空域前，机上哪些设备必须处于可运行状态？",
-            options: ["两个主要高度测量系统、一个自动高度控制系统、一个高度警告系统和TCAS", "三套独立的高度测量系统", "一个主要的自动导航系统和TCAS", "一套完整的GPS/GNSS导航系统"],
-            correct: 0,
-            rationale: "依据：飞行运行手册 3.12.2 A。RVSM必须设备：两套主要高度测量、一套自动高度控制、一套高度警告、TCAS。"
-        },
-        {
-            id: 20, category: "应急程序",
-            question: "当机组收到机载防撞系统（TCAS）发布的'决断咨询'（RA）告警时，为确保安全间隔，机组必须采取的首要行动是什么？",
-            options: ["立即向空中交通管制（ATC）报告，并请求新的指令", "不加犹豫地遵循TCAS的指导，操纵航空器避让冲突", "如果目视看到冲突航空器，则手动接管并目视避让", "确认决断咨询（RA）与ATC指令是否一致，不一致时遵循ATC指令"],
-            correct: 1,
-            rationale: "依据：飞行运行手册 3.7.2.2 A。收到RA告警，无论是否目视，都应不加犹豫地遵循TCAS指导。"
-        }
-    ];
-
-    // 初始化加载题目
-    const quizForm = document.getElementById('quiz-form');
-    quizData.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'question-card';
-        let optionsHtml = '';
-        item.options.forEach((opt, optIndex) => {
-            optionsHtml += `
-                <label id="q${index}_opt${optIndex}">
-                    <input type="radio" name="q${index}" value="${optIndex}">
-                    <span style="font-weight:bold; color:#1a73e8; margin-right:5px;">${String.fromCharCode(65 + optIndex)}.</span> ${opt}
-                </label>
-            `;
-        });
-        div.innerHTML = `
-            <div class="tag">${item.category}</div>
-            <div class="question-text">${index + 1}. ${item.question}</div>
-            <div class="options">${optionsHtml}</div>
-            <div class="feedback" id="feedback${index}"></div>
-        `;
-        quizForm.appendChild(div);
-    });
-
-    // 提交与分析逻辑
-    function submitQuiz() {
-        let score = 0;
-        let categoryStats = {};
-
-        // 判分逻辑
-        quizData.forEach((item, index) => {
-            // 分类统计初始化
-            if (!categoryStats[item.category]) {
-                categoryStats[item.category] = { total: 0, correct: 0 };
-            }
-            categoryStats[item.category].total++;
-
-            const selected = document.querySelector(`input[name="q${index}"]:checked`);
-            const feedbackEl = document.getElementById(`feedback${index}`);
-            feedbackEl.style.display = 'block';
-
-            if (selected) {
-                const val = parseInt(selected.value);
-                if (val === item.correct) {
-                    score++;
-                    categoryStats[item.category].correct++;
-                    feedbackEl.innerHTML = `<div style="color:#155724; font-weight:bold;">✅ 回答正确</div><div style="margin-top:5px; color:#666; font-size:0.9em;">${item.rationale}</div>`;
-                    feedbackEl.style.borderLeftColor = '#28a745';
-                    document.getElementById(`q${index}_opt${val}`).classList.add('correct-bg');
-                } else {
-                    feedbackEl.innerHTML = `<div style="color:#721c24; font-weight:bold;">❌ 回答错误</div><div style="margin-top:5px; color:#666; font-size:0.9em;">正确答案：${String.fromCharCode(65 + item.correct)}。<br>${item.rationale}</div>`;
-                    feedbackEl.style.borderLeftColor = '#dc3545';
-                    document.getElementById(`q${index}_opt${val}`).classList.add('wrong-bg');
-                    document.getElementById(`q${index}_opt${item.correct}`).classList.add('correct-bg');
-                }
-            } else {
-                feedbackEl.innerHTML = `<div style="color:#856404; font-weight:bold;">⚠️ 未作答</div><div style="margin-top:5px; color:#666; font-size:0.9em;">正确答案：${String.fromCharCode(65 + item.correct)}。<br>${item.rationale}</div>`;
-                feedbackEl.style.borderLeftColor = '#ffc107';
-                document.getElementById(`q${index}_opt${item.correct}`).classList.add('correct-bg');
-            }
-        });
-
-        // 禁用按钮
-        document.querySelector('.btn-submit').style.display = 'none';
-
-        // 显示结果
-        const resultArea = document.getElementById('result-area');
-        resultArea.style.display = 'block';
-        document.getElementById('score-num').innerText = score;
-
-        // 生成可视化分析报告
-        let analysisHtml = '';
-        for (let cat in categoryStats) {
-            const stat = categoryStats[cat];
-            
-            // 计算逻辑
-            let color = '';
-            let statusText = '';
-            let widthPercent = (stat.correct / stat.total) * 100;
-
-            if (stat.correct === stat.total) {
-                color = '#28a745'; // 全对-绿
-                statusText = '🌟 完全掌握';
-            } else if (stat.correct === 0) {
-                color = '#dc3545'; // 全错-红
-                statusText = '⚠️ 需重点复习';
-            } else {
-                color = '#ffc107'; // 部分-黄
-                statusText = '🔨 需巩固';
-            }
-
-            analysisHtml += `
-                <div class="analysis-item">
-                    <div class="cat-name">${cat} <span style="font-weight:normal; color:#888; font-size:0.85em; margin-left:5px;">(答对 ${stat.correct}/${stat.total})</span></div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${widthPercent}%; background-color: ${color};"></div>
-                    </div>
-                    <div class="status-tag" style="color: ${color};">${statusText}</div>
-                </div>
-            `;
-        }
-        document.getElementById('analysis-content').innerHTML = analysisHtml;
-
-        // 滚动到底部
-        resultArea.scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
-
-</body>
-</html>
+        <div id="main-result-card" class="result
